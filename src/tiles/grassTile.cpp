@@ -2,9 +2,15 @@
 
 
 GrassTile::GrassTile(eType tileType) : Tile(tileType) {
-
+    tileColor = sf::Color(124,252,0);
 }
 
-eType GrassTile::getType() {
-    return this->tileType;
+void GrassTile::setStatus(eStatus status) {
+    switch(status) {
+        case destroyed:
+            tileColor = sf::Color::Black;
+            break;
+        default:
+            break;
+    }
 }

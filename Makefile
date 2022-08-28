@@ -16,7 +16,7 @@ run: clean all
 	clear
 	./$(BIN)/$(EXECUTABLE)
 
-$(BIN)/$(EXECUTABLE): $(SRC)/*.cpp $(SRC)/tiles/*.cpp $(SRC)/tileMap/*.cpp
+$(BIN)/$(EXECUTABLE): $(SRC)/*.cpp $(SRC)/tiles/*.cpp $(SRC)/tileMap/*.cpp $(SRC)/logic/*.cpp
 	$(CXX) $(CXX_FLAGS) -I$(INCLUDE) -I$(INCLUDE)/shapes -L$(LIB) $^ -o $@ $(LIBRARIES)
 
 clean:

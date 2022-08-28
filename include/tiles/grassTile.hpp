@@ -6,6 +6,7 @@
 class GrassTile : public Tile {
     
 public:
-    virtual eType getType();
     GrassTile(eType tileType = GRASS);
+
+    virtual void setStatus(eStatus status);
 };

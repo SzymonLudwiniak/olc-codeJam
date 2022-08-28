@@ -2,62 +2,112 @@
 #include "../../include/tileMap/terrainGenerator.hpp"
 
 
-TileMap::TileMap(sf::Vector2i size)
-: tiles(size.x * size.y), tilesVertices(sf::Quads, size.x * size.y*4){
+TileMap::TileMap(sf::Vector2i size, sf::View & view)
+: tiles(size.x * size.y), tilesVertices(nullptr),
+  tileBuffer(sf::Quads, sf::VertexBuffer::Dynamic), view(view){
 
 
-    fNoiseSeed2D = new float[size.x * size.y];
-    fPerlinNoise2D = new float[size.x * size.y];
+    fPerlinNoise2D = TerrainGenerator::generateTerrain(size, 8, 0.9f);
 
-    for (int i = 0; i < size.x * size.y; i++)
-        fNoiseSeed2D[i] = (float)rand() / (float)RAND_MAX;
-
-    TerrainGenerator::generateTerrain(size.x, size.y, fNoiseSeed2D, 8, 1.2f, fPerlinNoise2D);
-
-    textures.push_back(new sf::Texture);
     this->size = size;
 
-    for(auto & tile : tiles) {
-        tile = new GrassTile();
+    float height;
+    for(int y = 0; y < size.y; y++) {
+        for(int x = 0; x < size.x; x++) {
+            height = fPerlinNoise2D[x + y*size.x];
+            if(height < 0.5) {
+                tiles[x + y*size.x] = new WaterTile();
+                continue;
+            }
+            if(height < 0.625) {
+                tiles[x + y*size.x] = new GrassTile();
+                continue;
+            }
+            if(height < 0.6875) {
+                tiles[x + y*size.x] = new FieldTile();
+                continue;
+            }
+            if(height < 0.75) {
+                tiles[x + y*size.x] = new SwampTile();
+                continue;
+            }
+            if(height < 0.8125) {
+                tiles[x + y*size.x] = new ForestTile();
+                continue;
+            }
+            if(height < 0.875) {
+                tiles[x + y*size.x] = new DesertTile();
+                continue;
+            }
+            if(height < 0.9375) {
+                tiles[x + y*size.x] = new JungleTile();
+                continue;
+            }
+            if(height <= 1) {
+                tiles[x + y*size.x] = new IceTile();
+                continue;
+            }
+        }
     }
+
+    visibleMapSize = sf::Vector2i(0,0);
+
+    prepareVisibleTiles();
+}
+
+void TileMap::prepareVisibleTiles() {
+
+    delete[] tilesVertices;
 
     sf::Vector2f tSize = Tile::size;
 
+    int across = (int)view.getSize().x / tSize.x + 3;
+    int down = (int)view.getSize().y / tSize.y + 3;
+
+    int startX = int(view.getCenter().x/tSize.x - across/2);
+    int startY = int(view.getCenter().y/tSize.y - down/2);
+
+    if(startX < 0) startX = 0;
+    if(startY < 0) startY = 0;
+
+
     sf::Color tileColor;
 
-    for(int y = 0; y < size.y*4; y += 4) {
-        for(int x = 0; x < size.x*4; x += 4) {
-            tilesVertices[x + y * size.x].position = sf::Vector2f(x*tSize.x/4, y*tSize.y/4);
-            tilesVertices[x + y * size.x + 1].position = sf::Vector2f(x*tSize.x/4 + tSize.x, y*tSize.y/4);
-            tilesVertices[x + y * size.x + 2].position = sf::Vector2f(x*tSize.x/4 + tSize.x, y*tSize.y/4 + tSize.y);
-            tilesVertices[x + y * size.x + 3].position = sf::Vector2f(x*tSize.x/4, y*tSize.y/4 + tSize.y);
+    int yBound = startY + down > size.y ? size.y : startY + down;
+    int xBound = startX + across > size.x ? size.x : startX + across;
 
 
-            if(fPerlinNoise2D[x/4 + y/4*size.y] < 0.5) {
-                tileColor = sf::Color::Blue;
-            }
-            else if(fPerlinNoise2D[x/4 + y/4*size.y] < 0.6){
-                tileColor = sf::Color::Yellow;
-            }
-            else if(fPerlinNoise2D[x/4 + y/4*size.y] < 0.7){
-                tileColor = sf::Color::Green;
-            }
-            else if(fPerlinNoise2D[x/4 + y/4*size.y] <= 1){
-                tileColor = sf::Color::White;
-            }
+    visibleMapSize = sf::Vector2i(xBound-startX, yBound-startY);
 
-            tilesVertices[x + y * size.x].color = tileColor;
-            tilesVertices[x + y * size.x + 1].color = tileColor;
-            tilesVertices[x + y * size.x + 2].color = tileColor;
-            tilesVertices[x + y * size.x + 3].color = tileColor;
+    int tileNum = visibleMapSize.x * visibleMapSize.y;
 
+    tilesVertices = new sf::Vertex[tileNum*4];
+    tileBuffer.create(tileNum*4);
+
+
+    int vertexIndex = 0;
+    for(int y = startY; y < yBound; y++) {
+        for(int x = startX; x < xBound; x++) {
+            tilesVertices[vertexIndex].position = sf::Vector2f(x*tSize.x, y*tSize.y);
+            tilesVertices[vertexIndex + 1].position = sf::Vector2f(x*tSize.x + tSize.x, y*tSize.y);
+            tilesVertices[vertexIndex + 2].position = sf::Vector2f(x*tSize.x + tSize.x, y*tSize.y + tSize.y);
+            tilesVertices[vertexIndex + 3].position = sf::Vector2f(x*tSize.x, y*tSize.y + tSize.y);
+
+            tileColor = tiles[x+y*size.x]->getColor();
+
+            tilesVertices[vertexIndex].color = tileColor;
+            tilesVertices[vertexIndex + 1].color = tileColor;
+            tilesVertices[vertexIndex + 2].color = tileColor;
+            tilesVertices[vertexIndex + 3].color = tileColor;
+
+            vertexIndex+=4;
         }
     }
+    tileBuffer.update(tilesVertices);
 }
 
 void TileMap::draw(sf::RenderTarget &target, sf::RenderStates states) const {
-    states.texture = textures[0];
     states.transform *= getTransform();
-    target.draw(tilesVertices, states);
+    target.draw(tileBuffer, states);
 }
 

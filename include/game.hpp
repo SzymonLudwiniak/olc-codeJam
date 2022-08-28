@@ -1,14 +1,17 @@
 #pragma once
 
-#include "tileMap/tileMap.hpp"
+#include "logic/tileMapManager.hpp"
 
 class Game {
     static Game* instance;
 
+
     sf::RenderWindow window;
     sf::View view;
+    float zoom;
 
     TileMap map;
+    TileMapManager mapManager;
 
     float fps;
 

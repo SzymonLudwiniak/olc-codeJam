@@ -6,17 +6,24 @@
 
 class TileMap : public sf::Drawable, public sf::Transformable
 {
+    friend class TileMapManager;
+
     sf::Vector2i size;
+    sf::Vector2i visibleMapSize;
 
     std::vector<sf::Texture *> textures;
     std::vector<Tile *> tiles;
-    sf::VertexArray tilesVertices;
+    sf::Vertex * tilesVertices;
+    sf::VertexBuffer tileBuffer;
 
-    float *fNoiseSeed2D;
+    sf::View & view;
     float *fPerlinNoise2D;
+
+
 public:
 
-    explicit TileMap(sf::Vector2i size);
+    TileMap(sf::Vector2i size, sf::View & view);
 
+    void prepareVisibleTiles();
     virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const;
 };

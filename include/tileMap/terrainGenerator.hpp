@@ -5,9 +5,11 @@
 #ifndef CODEJAM_TERRAINGENERATOR_HPP
 #define CODEJAM_TERRAINGENERATOR_HPP
 
+#include <SFML/Graphics.hpp>
+
 class TerrainGenerator {
 public:
-    static void generateTerrain(int nWidth, int nHeight, float *fSeed, int nOctaves, float fBias, float *fOutput);
+    static float* generateTerrain(const sf::Vector2i& size, int nOctaves, float fBias);
 };
 
 #endif //CODEJAM_TERRAINGENERATOR_HPP

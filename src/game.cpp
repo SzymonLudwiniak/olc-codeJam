@@ -1,4 +1,5 @@
 #include "../include/game.hpp"
+#include "../include/defines.hpp"
 
 
 Game* Game::instance = nullptr;
@@ -12,11 +13,16 @@ Game* Game::getInstance() {
 
 
 Game::Game()
-: window(sf::VideoMode(1280, 720), "SFML works!"),
-  view(sf::FloatRect(0.f, 0.f, 1280.f, 720.f)),
-  map(sf::Vector2i(256, 256)) {
-
+: window(sf::VideoMode(SCREENWIDTH, SCREENHEIGHT), "OLC::CODEJAM"),
+  view(sf::FloatRect(0.f, 0.f, SCREENWIDTH, SCREENHEIGHT)),
+  map(sf::Vector2i(1024, 1024), view) {
+    window.setFramerateLimit(244);
+    zoom = 1.f;
     mouseButtonHold = false;
+
+
+    mapManager.setTileMap(&map);
+
     prepareFpsCounter();
 }
 
@@ -26,6 +32,8 @@ void Game::handleEvents() {
 
     static sf::Vector2i oldMousePos;
 
+    bool moved = false;
+
     sf::Event event;
     while (window.pollEvent(event)) {
         switch(event.type) {
@@ -33,10 +41,12 @@ void Game::handleEvents() {
                 window.close();
                 break;
             case sf::Event::KeyPressed:
-                if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
+                if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R)) {
                     view.rotate(1.f);
                     window.setView(view);
                 }
+                if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
+                    mapManager.breakTile(sf::Mouse::getPosition(window));
                 break;
             case sf::Event::MouseButtonPressed:
                 oldMousePos = sf::Mouse::getPosition(window);
@@ -46,35 +56,52 @@ void Game::handleEvents() {
                 mouseButtonHold = false;
                 break;
             case sf::Event::MouseMoved:
-                if(mouseButtonHold)
-                {
+                if(mouseButtonHold) {
                     sf::Vector2i mousePos = sf::Mouse::getPosition(window);
                     sf::Vector2i mouseMove = oldMousePos - mousePos;
 
+                    if(view.getCenter().x - view.getSize().x/2 + mouseMove.x < 0 ||
+                        view.getCenter().y - view.getSize().y/2 + mouseMove.y < 0)
+                        break;
+
                     view.move(mouseMove.x, mouseMove.y);
+                    moved = true;
                     window.setView(view);
                     oldMousePos = mousePos;
                     frames.setPosition(window.mapPixelToCoords(sf::Vector2i(0, 0)));
                 }
                 break;
-            case sf::Event::MouseWheelScrolled:
-                if(event.mouseWheelScroll.delta > 0)
-                {
+            /*case sf::Event::MouseWheelScrolled:
+                if(event.mouseWheelScroll.delta > 0 && zoom > 0.5f) {
                     view.zoom(0.98f);
                     frames.scale(0.98f, 0.98f);
+                    zoom *= 0.98f;
+                    map.prepareVisibleTiles();
+                    window.setView(view);
                 }
-                else
-                {
+                else if (event.mouseWheelScroll.delta < 0 && zoom < 5.f) {
                     view.zoom(1.02f);
                     frames.scale(1.02f, 1.02f);
+                    zoom *= 1.02f;
+                    map.prepareVisibleTiles();
+                    window.setView(view);
                 }
-                window.setView(view);
-                frames.setPosition(window.mapPixelToCoords(sf::Vector2i(0, 0)));
 
-                break;
+                if(view.getCenter().x - view.getSize().x/2 < 0 ||
+                   view.getCenter().y - view.getSize().y/2 < 0)
+                    view.setViewport(sf::FloatRect(0, 0, view.getViewport().height, view.getViewport().width));
+
+                frames.setPosition(window.mapPixelToCoords(sf::Vector2i(0, 0)));*/
             default:
                 break;
         }
+
+    }
+    if(moved)
+    {
+        map.prepareVisibleTiles();
+        moved = false;
+        window.setView(view);
     }
 }
 
