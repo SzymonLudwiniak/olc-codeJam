@@ -16,7 +16,7 @@ run: clean all
 	clear
 	./$(BIN)/$(EXECUTABLE)
 
-$(BIN)/$(EXECUTABLE): $(SRC)/*.cpp $(SRC)/tiles/*.cpp $(SRC)/tileMap/*.cpp $(SRC)/logic/*.cpp
+$(BIN)/$(EXECUTABLE): $(SRC)/*.cpp $(SRC)/tiles/*.cpp $(SRC)/tileMap/*.cpp $(SRC)/logic/*.cpp $(SRC)/entities/*.cpp $(SRC)/entities/characters/*.cpp $(SRC)/god/*.cpp $(SRC)/god/weather/*.cpp
 	$(CXX) $(CXX_FLAGS) -I$(INCLUDE) -I$(INCLUDE)/shapes -L$(LIB) $^ -o $@ $(LIBRARIES)
 
 clean:

@@ -11,7 +11,7 @@ class TileMap : public sf::Drawable, public sf::Transformable
     sf::Vector2i size;
     sf::Vector2i visibleMapSize;
 
-    std::vector<sf::Texture *> textures;
+    sf::Texture tileSetTexture;
     std::vector<Tile *> tiles;
     sf::Vertex * tilesVertices;
     sf::VertexBuffer tileBuffer;
@@ -25,5 +25,8 @@ public:
     TileMap(sf::Vector2i size, sf::View & view);
 
     void prepareVisibleTiles();
+
+    sf::Vector2i getSize();
     virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const;
+    void smartDraw(sf::RenderTarget &target);
 };

@@ -7,7 +7,7 @@
 
 #define SCREENWIDTH 1280
 #define SCREENHEIGHT 720
-#define TILEWIDTH 2
-#define TILEHEIGHT 2
+#define TILEWIDTH 16
+#define TILEHEIGHT 16
 
 #endif //CODEJAM_GLOBALS_HPP

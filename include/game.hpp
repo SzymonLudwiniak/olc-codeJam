@@ -1,12 +1,24 @@
 #pragma once
 
 #include "logic/tileMapManager.hpp"
+#include "entities/characters/king.hpp"
+#include "entities/banner.hpp"
+#include "god/weather/wind.hpp"
+#include "god/weather/lightning.hpp"
 
 class Game {
+    friend class God;
     static Game* instance;
 
+    Unit* king;
+    Unit* follower;
+    Entity* banner;
+    Wind* wind;
+    Lightning* lightning;
 
-    sf::RenderWindow window;
+    std::vector<Entity *> entities;
+
+    sf::RenderWindow*  window;
     sf::View view;
     float zoom;
 
@@ -14,6 +26,7 @@ class Game {
     TileMapManager mapManager;
 
     float fps;
+    float deltaTime;
 
     sf::Clock clock;
     sf::Time previousTime;

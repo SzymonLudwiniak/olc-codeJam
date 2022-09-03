@@ -1,11 +1,12 @@
 #include "../../include/tileMap/tileMap.hpp"
 #include "../../include/tileMap/terrainGenerator.hpp"
 
+#include <iostream>
+
 
 TileMap::TileMap(sf::Vector2i size, sf::View & view)
 : tiles(size.x * size.y), tilesVertices(nullptr),
-  tileBuffer(sf::Quads, sf::VertexBuffer::Dynamic), view(view){
-
+  tileBuffer(sf::Quads, sf::VertexBuffer::Stream), view(view){
 
     fPerlinNoise2D = TerrainGenerator::generateTerrain(size, 8, 0.9f);
 
@@ -15,31 +16,31 @@ TileMap::TileMap(sf::Vector2i size, sf::View & view)
     for(int y = 0; y < size.y; y++) {
         for(int x = 0; x < size.x; x++) {
             height = fPerlinNoise2D[x + y*size.x];
-            if(height < 0.5) {
+            if(height < 0.25) {
                 tiles[x + y*size.x] = new WaterTile();
                 continue;
             }
-            if(height < 0.625) {
-                tiles[x + y*size.x] = new GrassTile();
-                continue;
-            }
-            if(height < 0.6875) {
-                tiles[x + y*size.x] = new FieldTile();
-                continue;
-            }
-            if(height < 0.75) {
-                tiles[x + y*size.x] = new SwampTile();
-                continue;
-            }
-            if(height < 0.8125) {
-                tiles[x + y*size.x] = new ForestTile();
-                continue;
-            }
-            if(height < 0.875) {
+            if(height < 0.325) {
                 tiles[x + y*size.x] = new DesertTile();
                 continue;
             }
-            if(height < 0.9375) {
+            if(height < 0.5) {
+                tiles[x + y*size.x] = new GrassTile();
+                continue;
+            }
+            if(height < 0.625) {
+                tiles[x + y*size.x] = new SwampTile();
+                continue;
+            }
+            if(height < 0.750) {
+                tiles[x + y*size.x] = new ForestTile();
+                continue;
+            }
+            if(height < 0.825) {
+                tiles[x + y*size.x] = new FieldTile();
+                continue;
+            }
+            if(height < 0.9) {
                 tiles[x + y*size.x] = new JungleTile();
                 continue;
             }
@@ -50,6 +51,20 @@ TileMap::TileMap(sf::Vector2i size, sf::View & view)
         }
     }
 
+    int across = (int)view.getSize().x / Tile::size.x + 3;
+    int down = (int)view.getSize().y / Tile::size.y + 3;
+
+
+    visibleMapSize = sf::Vector2i(across*2, down*2);
+
+
+    tilesVertices = new sf::Vertex[visibleMapSize.x * visibleMapSize.y];
+    tileBuffer.create(visibleMapSize.x * visibleMapSize.y);
+
+    if(!tileSetTexture.loadFromFile("./textures/tileSet2.png")) {
+        std::cout << "whoops!\n";
+    }
+
     visibleMapSize = sf::Vector2i(0,0);
 
     prepareVisibleTiles();
@@ -57,32 +72,31 @@ TileMap::TileMap(sf::Vector2i size, sf::View & view)
 
 void TileMap::prepareVisibleTiles() {
 
-    delete[] tilesVertices;
-
     sf::Vector2f tSize = Tile::size;
 
     int across = (int)view.getSize().x / tSize.x + 3;
     int down = (int)view.getSize().y / tSize.y + 3;
 
-    int startX = int(view.getCenter().x/tSize.x - across/2);
-    int startY = int(view.getCenter().y/tSize.y - down/2);
+    int startX = int(view.getCenter().x/tSize.x - across/2 + 1);
+    int startY = int(view.getCenter().y/tSize.y - down/2 + 1);
 
-    if(startX < 0) startX = 0;
-    if(startY < 0) startY = 0;
-
-
-    sf::Color tileColor;
-
-    int yBound = startY + down > size.y ? size.y : startY + down;
-    int xBound = startX + across > size.x ? size.x : startX + across;
+    int yBound = startY + down;
+    int xBound = startX + across;
 
 
-    visibleMapSize = sf::Vector2i(xBound-startX, yBound-startY);
-
-    int tileNum = visibleMapSize.x * visibleMapSize.y;
-
-    tilesVertices = new sf::Vertex[tileNum*4];
-    tileBuffer.create(tileNum*4);
+    auto setTexture = [&] (int vertexIndex, eType tileType, bool downEdge = false) -> void {
+        if(!downEdge) {
+            tilesVertices[vertexIndex].texCoords = sf::Vector2f(tileType * tSize.x, 0.f);
+            tilesVertices[vertexIndex+1].texCoords = sf::Vector2f(tileType * tSize.x + tSize.x, 0.f);
+            tilesVertices[vertexIndex+2].texCoords = sf::Vector2f(tileType * tSize.x + tSize.x, tSize.y);
+            tilesVertices[vertexIndex+3].texCoords = sf::Vector2f(tileType * tSize.x, tSize.y);
+            return;
+        }
+        tilesVertices[vertexIndex].texCoords = sf::Vector2f(tileType * tSize.x, tSize.y);
+        tilesVertices[vertexIndex+1].texCoords = sf::Vector2f(tileType * tSize.x + tSize.x, tSize.y);
+        tilesVertices[vertexIndex+2].texCoords = sf::Vector2f(tileType * tSize.x + tSize.x, 2*tSize.y);
+        tilesVertices[vertexIndex+3].texCoords = sf::Vector2f(tileType * tSize.x, 2*tSize.y);
+    };
 
 
     int vertexIndex = 0;
@@ -93,12 +107,12 @@ void TileMap::prepareVisibleTiles() {
             tilesVertices[vertexIndex + 2].position = sf::Vector2f(x*tSize.x + tSize.x, y*tSize.y + tSize.y);
             tilesVertices[vertexIndex + 3].position = sf::Vector2f(x*tSize.x, y*tSize.y + tSize.y);
 
-            tileColor = tiles[x+y*size.x]->getColor();
 
-            tilesVertices[vertexIndex].color = tileColor;
-            tilesVertices[vertexIndex + 1].color = tileColor;
-            tilesVertices[vertexIndex + 2].color = tileColor;
-            tilesVertices[vertexIndex + 3].color = tileColor;
+            eType tileType = tiles[x+y*size.x]->getType();
+
+            (y < yBound-1 && tileType != tiles[x+(y+1)*size.x]->getType())
+            ? setTexture(vertexIndex, tileType, true) : setTexture(vertexIndex, tileType);
+
 
             vertexIndex+=4;
         }
@@ -106,8 +120,18 @@ void TileMap::prepareVisibleTiles() {
     tileBuffer.update(tilesVertices);
 }
 
+sf::Vector2i TileMap::getSize() {
+    return size;
+}
+
 void TileMap::draw(sf::RenderTarget &target, sf::RenderStates states) const {
     states.transform *= getTransform();
+    states.texture = &tileSetTexture;
     target.draw(tileBuffer, states);
 }
 
+void TileMap::smartDraw(sf::RenderTarget &target) {
+    //states.transform *= getTransform();
+    prepareVisibleTiles();
+    target.draw(tileBuffer);
+}

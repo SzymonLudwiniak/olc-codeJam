@@ -5,15 +5,15 @@
 
 
 enum eType {
-    DEFAULT = 0,
-    WATER = 1,
-    GRASS = 2,
-    FIELD = 3,
-    SWAMP = 4,
-    FOREST = 5,
-    DESERT = 6,
-    JUNGLE = 7,
-    ICE = 6,
+    WATER = 0,
+    GRASS = 1,
+    FIELD = 2,
+    SWAMP = 3,
+    FOREST = 4,
+    DESERT = 5,
+    JUNGLE = 6,
+    ICE = 7,
+    DEFAULT = 9,
 };
 
 enum eStatus {
