@@ -1,10 +1,12 @@
 #pragma once
 
 #include "logic/tileMapManager.hpp"
-#include "entities/characters/king.hpp"
-#include "entities/banner.hpp"
 #include "god/weather/wind.hpp"
 #include "god/weather/lightning.hpp"
+
+#include "../include/entities/characters/king.hpp"
+#include "../include/entities/banner.hpp"
+#include "../include/entities/characters/orc.hpp"
 
 class Game {
     friend class God;

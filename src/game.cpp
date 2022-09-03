@@ -20,7 +20,7 @@ Game::Game()
 
     window = new sf::RenderWindow(sf::VideoMode(SCREENWIDTH, SCREENHEIGHT),
            "OLC::CODEJAM", sf::Style::Default, settings);
-    follower = new King(true);
+    follower = new Orc(true);
     king = new King(true);
     banner = new Banner(sf::Vector2f(100, 100));
     window->setFramerateLimit(244);
@@ -28,6 +28,7 @@ Game::Game()
     mouseButtonHold = false;
 
     king->Entity::move(sf::Vector2f(200.f, 200.f));
+    king->setDestination(banner);
     follower->setDestination(king);
     mapManager.setTileMap(&map);
 

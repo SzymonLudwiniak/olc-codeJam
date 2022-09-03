@@ -23,12 +23,15 @@ void King::move(float deltaTime) {
         y = destination.y - position.y;
     }
 
+    if(x*x + y*y < 100) return;
+
     float theta = atan2(y, x);
+
 
     Entity::move(sf::Vector2f(deltaTime * speed * (cos(theta) - sin(theta)),
                               deltaTime * speed * (sin(theta) + cos(theta))));
 }
 
-void King::draw(sf::RenderTarget & target, sf::RenderStates state) const {
-    target.draw(sprite, state);
-}
+//void King::draw(sf::RenderTarget & target, sf::RenderStates state) const {
+//    target.draw(sprite, state);
+//}

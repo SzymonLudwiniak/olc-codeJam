@@ -15,7 +15,7 @@ public:
 
     virtual void move(float deltaTime);
 
-    virtual void draw(sf::RenderTarget & target, sf::RenderStates state) const;
+    //virtual void draw(sf::RenderTarget & target, sf::RenderStates state) const;
 };
 
 
